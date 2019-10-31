@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.js"></script>
+  <script src="https://github.com/ripple/ripple-lib/releases/download/1.4.0/ripple-1.4.0-min.js"></script>
+</head>
+<body>
+  <script>
+  async function main() {
+    let api = new ripple.RippleAPI({
+      // TestNet
+      server: 'wss://s.altnet.rippletest.net:51233'
+    });
+    let address = 'rhXPs7Yvj6Z7ZyZhucGdZkBNAft89qBK4R';
+    let result;
+    try {
+      await api.connect();
+      let account = await api.getAccountInfo(address);
+      result = JSON.stringify(account, null, 2);
+    } catch (e) {
+      result = e;
+    } finally {
+      // disconnect asynchronously
+      api.disconnect();
+    }
+    alert(result);
+  }
+  main();
+  </script>
+</body>
+</html>

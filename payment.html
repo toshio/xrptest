@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.js"></script>
+  <script src="https://github.com/ripple/ripple-lib/releases/download/1.4.0/ripple-1.4.0-min.js"></script>
+</head>
+<body>
+  <form name="parameter">
+    <input type="text" name="addressFrom" placeholder="送金元アドレス" size="35"><br/>
+    <input type="password" name="secretFrom" placeholder="送金元シークレット" size="35"><br/>
+    <input type="text" name="addressTo" placeholder="送金先アドレス" size="35"><br/>
+    <input type="number" name="amount" min="1" step="0.000001" max="9" value="1.000000"> XRP<br/>
+  </form>
+  <button id="button" onclick="sendXRP()">送金</button>
+  <script>
+    let api;
+    async function sendXRP() {
+      let button = document.getElementById('button');
+      button.disabled = true;
+
+      try {
+        let addressFrom = document.forms.parameter.addressFrom.value;
+        let secretFrom = document.forms.parameter.secretFrom.value;
+        let addressTo = document.forms.parameter.addressTo.value;
+        let amount = document.forms.parameter.amount.value;
+
+        api = new ripple.RippleAPI({
+          // TestNet
+          server: 'wss://s.altnet.rippletest.net:51233'
+        });
+
+        if (!api.isValidAddress(addressFrom)) {
+          alert('有効な送金元アドレスを指定してください。');
+          return;
+        }
+        if (!api.isValidSecret(secretFrom)) {
+          alert('有効な送金元シークレットを指定してください。');
+          return;
+        }
+        if (!api.isValidAddress(addressTo)) {
+          alert('有効な送金先アドレスを指定してください。');
+          return;
+        }
+
+        // 決済処理
+        let result = await pay(addressFrom, secretFrom, addressTo, amount);
+        alert(result.resultMessage);
+
+      } catch (e) {
+        alert(e);
+
+      } finally {
+        // ボタン有効化
+        button.disabled = false;
+      }
+    }
+
+    /**
+     * payment transaction
+     */
+     async function pay(addressFrom, secretFrom, addressTo, amount) {
+      try {
+        await api.connect();
+
+        let payment = {
+          source: {
+            address: addressFrom,
+            maxAmount: {
+              value: amount,
+              currency: 'XRP'
+            }
+          },
+          destination: {
+            address: addressTo,
+            amount: {
+              value: amount,
+              currency: 'XRP'
+            }
+          }
+        };
+        let prepared = await api.preparePayment(addressFrom, payment, {
+          maxLedgerVersionOffset: 5
+        });
+        const {signedTransaction} = api.sign(prepared.txJSON, secretFrom);
+
+        return await api.submit(signedTransaction);
+
+      } finally {
+        await api.disconnect();
+      }
+    }
+  </script>
+</body>
+</html>

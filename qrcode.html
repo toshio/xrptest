@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.2/build/qrcode.min.js" integrity="sha256-mwsMliyK97mRWE7ymumBhoy7g7/shXXYvfDLJCOfoGM=" crossorigin="anonymous"></script>
+</head>
+<body>
+  <input id="address" type="text" name="address" size="35" placeholder="XRP Address">
+  <button id="button" type="button" onclick="generate()">QR</button>
+  <br/>
+  <canvas id="qrcode"></canvas>
+  <script>
+    function generate() {
+      let address = document.getElementById('address').value;
+      let button = document.getElementById('button');
+      let qrcode = document.getElementById('qrcode');
+
+      button.disabled = true;
+      QRCode.toCanvas(qrcode, address, (error)=>{
+        if (error) {
+          alert(error);
+        }
+        button.disabled = false;
+      });
+    }
+  </script>
+</body>
+</html>
